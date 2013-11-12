@@ -1,0 +1,17 @@
+*~
+bin/
+target/
+gen/
+gen-external-apklibs/
+.eclipse
+.settings/
+.idea/
+out/
+.project
+.classpath
+.springBeans
+*.iml
+*.ipr
+*.iws
+.directory
+local.properties
