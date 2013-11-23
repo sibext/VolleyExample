@@ -3,5 +3,8 @@
 
     <string name="app_name">Volley Example</string>
     <string name="start1">Send request</string>
+    <string name="title_activity_game">GameActivity</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
 
 </resources>
