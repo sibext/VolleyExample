@@ -18,11 +18,6 @@ public class BallPosition {
         return posX;
     }
 
-    public void setPosition(int posX, int posY) {
-        this.posX = posX;
-        this.posY = posY;
-    }
-
     public int getPosY() {
         return posY;
     }

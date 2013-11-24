@@ -6,7 +6,6 @@ import android.graphics.*;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.View;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -15,26 +14,21 @@ public class ValleyGame extends View{
     private boolean initFlag = false;
     private int height;
     private int width;
-    private static int padding = 5;
-    private int picSide = 50;
-    private int outWidth = picSide+padding;//(int) convertPixelsToDp(picSide)+padding;
+    private Bitmap myBall = BitmapFactory.decodeResource(getResources(), R.drawable.valleyball);
+    private int padding = 5;
+    private int picSide = myBall.getHeight();
+    private int outWidth = picSide+padding*2;
+    private String ballStatus = "out";
 
-    private BallPosition startBallPosition;// = new BallPosition("out_center_1", width, height/2);
-    private BallPosition curBallPosition;
+    private BallPosition startBallPosition;
+    BallPosition curBallPosition;
 
     ArrayList<BallPosition> ballPositionList = new ArrayList<BallPosition>();
     private Paint paint = new Paint();
 
-    public int getContentWidth(){
-        return width;
-    }
-    public int getContentHeight(){
-        return height;
-    }
     public ValleyGame(Context context, AttributeSet attrs){
         super(context, attrs);
         this.context = context;
-        //init();
         addPositions();
     }
 
@@ -42,59 +36,46 @@ public class ValleyGame extends View{
         this(context, null);
         this.context = context;
         addPositions();
-        //init();
-        //curBallPosition = startBallPosition;
+    }
+
+    public void setInitFlag(boolean flag){
+        this.initFlag = flag;
     }
 
     private void addPositions(){
         //Out
-        ballPositionList.add(new BallPosition("out_left_0", width/4, 0));
-        ballPositionList.add(new BallPosition("out_center_0", 0, height/2));
-        ballPositionList.add(new BallPosition("out_right_0", width/4, height));
-        ballPositionList.add(new BallPosition("out_left_1", width*3/4, 0));
-        ballPositionList.add(new BallPosition("out_center_1", width, height/2));
-        ballPositionList.add(new BallPosition("out_right_1", width*3/4, height));
-        ballPositionList.add(new BallPosition("out_near grid_1", width/2+outWidth, height));
+        ballPositionList.add(new BallPosition("out_left_0", width/4-outWidth, padding));
+        ballPositionList.add(new BallPosition("out_center_0", padding, height/2-outWidth/2));
+        ballPositionList.add(new BallPosition("out_right_0", width/4-outWidth, height-outWidth));
+        ballPositionList.add(new BallPosition("out_near grid_1", width/2-outWidth, padding));
+        ballPositionList.add(new BallPosition("out_left_1", width*3/4, padding));
+        ballPositionList.add(new BallPosition("out_center_1", width-outWidth, height/2-outWidth/2));
+        ballPositionList.add(new BallPosition("out_right_1", width*3/4, height-outWidth));
+        ballPositionList.add(new BallPosition("out_near grid_1", width/2+padding, height-outWidth));
 
         //Goal
-        /*ballPosition = new BallPosition("goal_left_0", width/4, outWidth);
-        ballPositionList.add(ballPosition);
-        ballPosition = new BallPosition("goal_center_0", outWidth, height/2-outWidth/2);
-        ballPositionList.add(ballPosition);
-        ballPosition = new BallPosition("goal_right_0", width/4, height-outWidth*2);
-        ballPositionList.add(ballPosition);
-        ballPosition = new BallPosition("goal_near grid_0", width/2-outWidth, outWidth);
-        ballPositionList.add(ballPosition);
-        ballPosition = new BallPosition("goal_left_1", width*3/4, outWidth);
-        ballPositionList.add(ballPosition);
-        ballPosition = new BallPosition("goal_center_1", width-outWidth*2, height/2);
-        ballPositionList.add(ballPosition);
-        ballPosition = new BallPosition("goal_right_1", width*3/4, height-outWidth*2);
-        ballPositionList.add(ballPosition);
-        ballPosition = new BallPosition("goal_near grid_1", width/2+outWidth, height-outWidth*2);
-        ballPositionList.add(ballPosition);
+        ballPositionList.add(new BallPosition("goal_left_0", width/4, outWidth*2));
+        ballPositionList.add(new BallPosition("goal_center_0", outWidth*2, height/2-outWidth/2));
+        ballPositionList.add(new BallPosition("goal_right_0", width/4, height-outWidth*2));
+        ballPositionList.add(new BallPosition("goal_near grid_1", width/2-outWidth, outWidth));
+        ballPositionList.add(new BallPosition("goal_left_1", width*3/4+outWidth, outWidth*2));
+        ballPositionList.add(new BallPosition("goal_center_1", width-outWidth*2, height/2-outWidth/2));
+        ballPositionList.add(new BallPosition("goal_right_1", width*3/4+outWidth, height-outWidth*2));
+        ballPositionList.add(new BallPosition("goal_near grid_1", width/2+padding, height-outWidth*2));
 
         //Caught
-        ballPosition = new BallPosition("caught_left_0", width/4, outWidth);
-        ballPositionList.add(ballPosition);
-        ballPosition = new BallPosition("caught_center_0", outWidth, height/2-outWidth/2);
-        ballPositionList.add(ballPosition);
-        ballPosition = new BallPosition("caught_right_0", width/4, height-outWidth*2);
-        ballPositionList.add(ballPosition);
-        ballPosition = new BallPosition("caught_near grid_0", width/2-outWidth, outWidth);
-        ballPositionList.add(ballPosition);
-        ballPosition = new BallPosition("caught_left_1", width*3/4, outWidth);
-        ballPositionList.add(ballPosition);
-        ballPosition = new BallPosition("caught_center_1", width-outWidth*2, height/2);
-        ballPositionList.add(ballPosition);
-        ballPosition = new BallPosition("caught_right_1", width*3/4, height-outWidth*2);
-        ballPositionList.add(ballPosition);
-        ballPosition = new BallPosition("caught_near grid_1", width/2+outWidth, height-outWidth*2);
-        ballPositionList.add(ballPosition);*/
+        ballPositionList.add(new BallPosition("caught_left_0", width/4, outWidth*2));
+        ballPositionList.add(new BallPosition("caught_center_0", outWidth*2, height/2-outWidth/2));
+        ballPositionList.add(new BallPosition("caught_right_0", width/4, height-outWidth*2));
+        ballPositionList.add(new BallPosition("caught_near grid_1", width/2-outWidth, outWidth));
+        ballPositionList.add(new BallPosition("caught_left_1", width*3/4+outWidth, outWidth*2));
+        ballPositionList.add(new BallPosition("caught_center_1", width-outWidth*2, height/2-outWidth/2));
+        ballPositionList.add(new BallPosition("caught_right_1", width*3/4+outWidth, height-outWidth*2));
+        ballPositionList.add(new BallPosition("caught_near grid_1", width/2+padding, height-outWidth*2));
     }
 
     private void init(){
-        startBallPosition = new BallPosition("out_center_1", width, height/2);
+        startBallPosition = new BallPosition("out_center_1", width-outWidth, height/2-outWidth/2);
         curBallPosition = startBallPosition;
     }
 
@@ -109,60 +90,34 @@ public class ValleyGame extends View{
     @Override
     protected void onDraw(Canvas canvas){
         super.onDraw(canvas);
-        Toast.makeText(context, "invalidate!!!", Toast.LENGTH_LONG).show();
+        //Toast.makeText(context, "invalidate!!!", Toast.LENGTH_LONG).show();
         if(!initFlag){
             init();
             addPositions();
             initFlag = true;
         }
-        paint.setColor(Color.BLUE);
-        paint.setStrokeWidth(2);
-        canvas.drawLine(0, 0, width, height, paint);
-        canvas.drawLine(width, 0, 0, height, paint);
+        paint.setColor(Color.GREEN);
+        canvas.drawRect(0, 0, width, height, paint);
+        paint.setColor(Color.YELLOW);
+        canvas.drawRect(outWidth, outWidth, width-outWidth, height-outWidth, paint);
 
         paint.setColor(Color.RED);
-        canvas.drawLine(width/2, 0, width/2, height, paint);
-        canvas.drawLine(width, height/2, 0, height/2, paint);
+        paint.setStrokeWidth(10);
+        canvas.drawLine(width/2-5, 0, width/2-5, height, paint);
 
-        paint.setColor(Color.GREEN);
-        paint.setTextSize(height/10);
+        paint.setColor(Color.BLACK);
+        paint.setTextSize(height/14);
 
-       // Bitmap bitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
-        //Canvas over = new Canvas(bitmap);
+        canvas.drawText(ballStatus, 20, height/14+10, paint);
 
-        canvas.drawText((curBallPosition.getPosX()-picSide) + " | " + (curBallPosition.getPosY()-picSide/2), width/4, height/8, paint);
-
-        canvas.drawBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.valleyball), curBallPosition.getPosX()-picSide, curBallPosition.getPosY()-picSide/2, null);
-
-        //over.drawBitmap(bitmap, 0, 0, null);
-        //.draw(over);
-        //paint.setColor(Color.CYAN);
-        //canvas.drawCircle(width/2, height/2, width/4, paint);
-
+        canvas.drawBitmap(myBall, curBallPosition.getPosX(), curBallPosition.getPosY(), null);
     }
 
     public void setCurBallPosition(BallPosition bp){
         this.curBallPosition = bp;
     }
 
-    public BallPosition getCurBallPosition(){
-        return this.curBallPosition;
-    }
-
-    public BallPosition findPosition(String responseBP){
-        for(BallPosition bp : ballPositionList){
-            if(bp.getName() == responseBP){
-                this.curBallPosition = bp;
-                Toast.makeText(context, "bpname = "+bp.getName()+" | responseBP = "+responseBP, Toast.LENGTH_LONG).show();
-            }
-        }
-        return this.curBallPosition;
-    }
-
-    public float convertPixelsToDp(float px){
-        Resources resources = getResources();
-        DisplayMetrics metrics = resources.getDisplayMetrics();
-        float dp = px / (metrics.densityDpi / 160f);
-        return dp;
+    public void setBallStatus(String ballStatus) {
+        this.ballStatus = ballStatus;
     }
 }
