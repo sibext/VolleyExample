@@ -202,5 +202,28 @@
         android:text="TextView" />
 
 </LinearLayout>
+
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+
+    <EditText
+        android:id="@+id/edNumPause"
+        android:layout_width="90dp"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:hint="@string/hint_pause"
+        android:inputType="number"
+        android:text="1" />
+
+    <Button
+        android:id="@+id/butStartFull"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/edNumPause"
+        android:text="@string/StartFullGame" />
+
+</RelativeLayout>
         
 </LinearLayout>
