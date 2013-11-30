@@ -14,16 +14,35 @@
         android:layout_height="wrap_content"
         android:text="@string/start1" />
 
+    <RelativeLayout
+            android:id="@+id/feild"
+            android:layout_width="280dp"
+            android:layout_height="250dp"
+            android:background="@drawable/feildshape" >
+     <Button 
+        android:layout_width="25dp"
+        android:layout_height="250dp"
+        android:layout_centerInParent="true"
+        />
+    <RelativeLayout
+        android:id="@+id/ball"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:background="@drawable/ballshape"
+        android:visibility="visible"/>
+	</RelativeLayout>
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
 		android:layout_gravity="center_horizontal" >
-
-        <LinearLayout
-            android:id="@+id/result"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
+  
+    <LinearLayout
+        android:id="@+id/result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+	    android:orientation="vertical"   
+        />
+        
     </ScrollView>
 
 </LinearLayout>

@@ -8,7 +8,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.Button;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,13 +25,25 @@ public class MainActivity extends Activity {
     private int direction = 1;
     private ViewGroup resultView;
     private Button button;
+    private ViewGroup ball;
+    private ViewGroup feild;
+
+    int CenterFeildX = 0;
+    int CenterFeildY = 0;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         resultView = (ViewGroup)findViewById(R.id.result);
+        ball = (ViewGroup)findViewById(R.id.ball);
+        feild = (ViewGroup)findViewById(R.id.feild);
+        
+    	CenterFeildX = feild.getLayoutParams().width / 2;
+    	CenterFeildY = feild.getLayoutParams().height / 2;
+    	
         VolleyHelper.init(this);
+        
         button = (Button)findViewById(R.id.button); 
         button.setOnClickListener(new OnClickListener() {
 			@Override
@@ -56,12 +71,75 @@ public class MainActivity extends Activity {
 		});
 
     }
+    private void ResponseAnalyze(String result, String place)
+    {
+
+    	int paddingLeft = 0;
+    	int paddingTop = 0;
+    	
+    	int ballHeight = ball.getLayoutParams().height;
+    	int ballWidth = ball.getLayoutParams().width;
+    	
+    	if (direction == 1)
+    	{
+    		paddingLeft += CenterFeildX;
+    	}
+    	
+    	if (place.equalsIgnoreCase("center"))
+    	{
+    		paddingLeft += CenterFeildX / 2 - ballWidth / 2;
+    		paddingTop += CenterFeildY - ballHeight / 2;
+    		if (result.equalsIgnoreCase("out"))
+    			if (direction == 1)
+    				paddingLeft = CenterFeildX * 2 - ballWidth;
+    			else
+    				paddingLeft = 0;
+    		
+    	} else if (place.equalsIgnoreCase("right"))
+    	{
+       		paddingLeft += CenterFeildX / 2 - ballWidth / 2;
+    		paddingTop += CenterFeildY - CenterFeildY / 2 - ballHeight / 2;
+    		
+    		if (result.equalsIgnoreCase("out"))
+    			paddingTop = 0;
+     	} else if (place.equalsIgnoreCase("left"))
+     	{
+       		paddingLeft += CenterFeildX / 2 - ballWidth / 2;
+    		paddingTop += CenterFeildY  + CenterFeildY / 2 - ballHeight / 2;
+    		if (result.equalsIgnoreCase("out"))
+    			paddingTop = CenterFeildY * 2 - ballHeight;
+     		
+     	} else if (place.equalsIgnoreCase("near grid"))
+     	{
+       		paddingLeft = CenterFeildX + (ballWidth + 2) * (direction == 1 ? 1 : -1);
+    		paddingTop += CenterFeildY  - ballHeight / 2;
+    		if (result.equalsIgnoreCase("out"))
+    			if (direction == 1)
+    			paddingLeft -= ballWidth / 2;
+    			else
+    			paddingLeft += ballWidth / 2;
+     	}
+    	
+    	MarginLayoutParams params = (MarginLayoutParams) ball.getLayoutParams();
+    	params.setMargins(paddingLeft, paddingTop, 0, 0);
+    	ball.setLayoutParams(params);
+    	
+    	//Why is not work? Occurs a exception
+    	//MarginLayoutParams params = new MarginLayoutParams(20, 20);
+    	//params.setMargins(150, 0, 0, 0);
+    	//ball.setLayoutParams(params);
+    	//ball.requestLayout();
+    }
+    
     private Response.Listener<JSONObject> createMyReqSuccessListener() {
         return new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
                 	String result = response.getString("result");
+                	String place = response.getString("place");
+                	ResponseAnalyze(result, place);
+                	
                     if (!result.equals("goal")) {
 	                    if (direction == 1) {
 	                    	direction = 0;
@@ -70,8 +148,9 @@ public class MainActivity extends Activity {
 	                    }
                     }
                     TextView textView = ((TextView)resultView.getChildAt(resultView.getChildCount() - 1));
-                    textView.setText(textView.getText() + " (" + result + ")");
+                    textView.setText(textView.getText() + " (" + result + ")" + "(" + place + ")");
                     button.setClickable(true);
+
                 } catch (JSONException e) {
                 	Toast.makeText(MainActivity.this, "Parse error", Toast.LENGTH_LONG).show();
                 }
