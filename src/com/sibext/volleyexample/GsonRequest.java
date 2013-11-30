@@ -1,29 +1,43 @@
 package com.sibext.volleyexample;
 
+import java.io.UnsupportedEncodingException;
+
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.Response.ErrorListener;
 import com.android.volley.Response.Listener;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.google.gson.Gson;
 
 public class GsonRequest<T> extends Request<T>{
 
 	private Listener<T> callback;
-	private Class<?>  object_class;
+	private Class<T>  object_class;
 	private Gson gson = new Gson();
-	public GsonRequest(int method, String url, ErrorListener listener, Listener<T> Callback, Class<?> objectClass) {
+	private ValleyRequest req_object;
+	
+	public GsonRequest(int method, String url, ValleyRequest req,  ErrorListener listener, Listener<T> Callback, Class<T> objectClass) {
 		super(method, url, listener);
 		callback = Callback;
 		object_class = objectClass;
+		req_object = req;
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	protected Response parseNetworkResponse(NetworkResponse response) {
-
-		T object = (T) gson.fromJson(response.toString(), object_class);
+		String jsonString = null;
+		try {
+			jsonString =
+			        new String(response.data, HttpHeaderParser.parseCharset(response.headers));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		T object = (T) gson.fromJson(jsonString, object_class);
 		return Response.success(object, this.getCacheEntry());
 	}
 
@@ -37,8 +51,9 @@ public class GsonRequest<T> extends Request<T>{
 	public byte[] getBody() throws AuthFailureError {
 		// TODO Auto-generated method stub
 		
-		gson.toJson(src)
-		return super.getBody();
+		//it's ugly but i'm lazy )))
+		return gson.toJson(req_object, ValleyRequest.class).getBytes();
+		
 	}
 
 }

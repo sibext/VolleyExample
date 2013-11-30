@@ -12,6 +12,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.Button;
 import android.widget.RadioButton;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,8 +50,25 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				button.setClickable(false);
+				button.setEnabled(false);
+				ValleyRequest req = new ValleyRequest();
 				RequestQueue queue = VolleyHelper.getRequestQueue();
-				JSONObject object = new JSONObject();
+				try
+				{
+					GsonRequest<ValleyResponse> responce = new GsonRequest<ValleyResponse>(Method.POST,
+							"http://volley.sibext.com/", req, createMyReqErrorListener(), GsonReqSuccessListner(), ValleyResponse.class);
+					queue.add(responce);
+				}
+				catch(Exception e)
+				{
+					e.printStackTrace();
+					button.setClickable(true);
+					button.setEnabled(true);
+				}
+				TextView textView = new TextView(MainActivity.this);
+				textView.setText("-> " + direction + "");
+				resultView.addView(textView);
+				/*JSONObject object = new JSONObject();
 				try {
 					object.put("direction", direction);
 					JsonObjectRequest volleyRequest = new JsonObjectRequest(Method.POST,
@@ -65,7 +83,7 @@ public class MainActivity extends Activity {
 					resultView.addView(textView);
 				} catch (JSONException e) {
 					e.printStackTrace();
-				}
+				}*/
 				
 			}
 		});
@@ -124,13 +142,34 @@ public class MainActivity extends Activity {
     	params.setMargins(paddingLeft, paddingTop, 0, 0);
     	ball.setLayoutParams(params);
     	
-    	//Why is not work? Occurs a exception
-    	//MarginLayoutParams params = new MarginLayoutParams(20, 20);
-    	//params.setMargins(150, 0, 0, 0);
-    	//ball.setLayoutParams(params);
-    	//ball.requestLayout();
     }
     
+    private Response.Listener<ValleyResponse> GsonReqSuccessListner()
+    {
+    	return new Response.Listener<ValleyResponse>() {
+
+			@Override
+			public void onResponse(ValleyResponse response) {
+				// TODO Auto-generated method stub
+              	String result = response.result;
+            	String place = response.place;
+            	ResponseAnalyze(result, place);
+            	
+                if (!result.equals("goal")) {
+                    if (direction == 1) {
+                    	direction = 0;
+                    } else {
+                    	direction = 1;
+                    }
+                }
+                TextView textView = ((TextView)resultView.getChildAt(resultView.getChildCount() - 1));
+                textView.setText(textView.getText() + " (" + result + ")" + "(" + place + ")");
+                button.setClickable(true);
+                button.setEnabled(true);
+			}
+    		
+    	};
+    }
     private Response.Listener<JSONObject> createMyReqSuccessListener() {
         return new Response.Listener<JSONObject>() {
             @Override
@@ -150,6 +189,7 @@ public class MainActivity extends Activity {
                     TextView textView = ((TextView)resultView.getChildAt(resultView.getChildCount() - 1));
                     textView.setText(textView.getText() + " (" + result + ")" + "(" + place + ")");
                     button.setClickable(true);
+                    button.setEnabled(true);
 
                 } catch (JSONException e) {
                 	Toast.makeText(MainActivity.this, "Parse error", Toast.LENGTH_LONG).show();
