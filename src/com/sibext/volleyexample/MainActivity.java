@@ -1,4 +1,4 @@
-package com.sibext.volleyexample;
+п»їpackage com.sibext.volleyexample;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -30,46 +30,52 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.sibext.volleyexample.GamePost.OnDrawGamePost;
+import com.sibext.volleyexample.TaskStartGame.OnStartFinish;
 
-public class MainActivity extends Activity implements OnClickListener, OnDrawGamePost {
-    // private int direction = 1;
+public class MainActivity extends Activity implements OnClickListener, OnDrawGamePost, OnStartFinish {    
     private Button butStart;    
     private TextView resGame;
     private Button butStartFull;
     private EditText edNumPause;
     
-    /** Результат игры  */
+    /** Р—Р°РїСѓС‰РµРЅРЅР°СЏ С‚Р°СЃРєР° */
+    private TaskStartGame RunTask = null;    
+    
+    /** Р”Р»СЏ РѕРїРµРґРµР»РµРЅРёСЏ РѕРґРёРЅРѕС‡РЅРѕРіРѕ СѓРґР°СЂР° */
+    private boolean isOneStep = false;
+    
+    /** Р РµР·СѓР»СЊС‚Р°С‚ РёРіСЂС‹  */
     private Integer resGame0 = 0;
     private Integer resGame1 = 0;
     
-    /** Текущее игровое поле */
+    /** РўРµРєСѓС‰РµРµ РёРіСЂРѕРІРѕРµ РїРѕР»Рµ */
     private ImageView curField = null;
     
-    /** Предыдущий рисунок на текущем поле */
+    /** РџСЂРµРґС‹РґСѓС‰РёР№ СЂРёСЃСѓРЅРѕРє РЅР° С‚РµРєСѓС‰РµРј РїРѕР»Рµ */
     private Bitmap bacBitmap = null;
     
-    // Ировые поля описывающие положение для каждой играющей стороны
+    // РСЂРѕРІС‹Рµ РїРѕР»СЏ РѕРїРёСЃС‹РІР°СЋС‰РёРµ РїРѕР»РѕР¶РµРЅРёРµ РґР»СЏ РєР°Р¶РґРѕР№ РёРіСЂР°СЋС‰РµР№ СЃС‚РѕСЂРѕРЅС‹
     private ArrayList<ImageView> feild_place_0;
     private ArrayList<ImageView> feild_place_1;
     
-    /** До скальки идет игра */
+    /** Р”Рѕ СЃРєР°Р»СЊРєРё РёРґРµС‚ РёРіСЂР° */
     final int MAX_SCORE = 10; 
 
-    
+    /** РЈС‚СЃР°РЅРѕРІРёС‚СЊ РїРѕР»СЏ РґР»СЏ РєР°Р¶РґРѕРіРѕ РёРіСЂРѕРІРѕРіРѕ РїРѕР»РѕР¶РµРЅРёСЏ */
     private void SetFeildPlace(){
     	this.feild_place_0 = new ArrayList<ImageView>(5);  
-    	this.feild_place_0.add(GamePost.PLACE_OUT,	(ImageView)findViewById(R.id.out0_center));
-    	this.feild_place_0.add(GamePost.PLACE_LEFT,	(ImageView)findViewById(R.id.f0_left));
-    	this.feild_place_0.add(GamePost.PLACE_CENTER,(ImageView)findViewById(R.id.f0_centr));
+    	this.feild_place_0.add(GamePost.PLACE_OUT,		(ImageView)findViewById(R.id.out0_center));
+    	this.feild_place_0.add(GamePost.PLACE_LEFT,		(ImageView)findViewById(R.id.f0_left));
+    	this.feild_place_0.add(GamePost.PLACE_CENTER,	(ImageView)findViewById(R.id.f0_centr));
     	this.feild_place_0.add(GamePost.PLACE_RIGHT,	(ImageView)findViewById(R.id.f0_right));
-    	this.feild_place_0.add(GamePost.PLACE_NEAR,	(ImageView)findViewById(R.id.greed21));
+    	this.feild_place_0.add(GamePost.PLACE_NEAR,		(ImageView)findViewById(R.id.greed21));
     	
     	this.feild_place_1 = new ArrayList<ImageView>(5);  
-    	this.feild_place_1.add(GamePost.PLACE_OUT,	(ImageView)findViewById(R.id.out1_centr));
-    	this.feild_place_1.add(GamePost.PLACE_LEFT,	(ImageView)findViewById(R.id.f1_left));
-    	this.feild_place_1.add(GamePost.PLACE_CENTER,(ImageView)findViewById(R.id.f1_centr));
+    	this.feild_place_1.add(GamePost.PLACE_OUT,		(ImageView)findViewById(R.id.out1_centr));
+    	this.feild_place_1.add(GamePost.PLACE_LEFT,		(ImageView)findViewById(R.id.f1_left));
+    	this.feild_place_1.add(GamePost.PLACE_CENTER,	(ImageView)findViewById(R.id.f1_centr));
     	this.feild_place_1.add(GamePost.PLACE_RIGHT,	(ImageView)findViewById(R.id.f1_right));
-    	this.feild_place_1.add(GamePost.PLACE_NEAR,	(ImageView)findViewById(R.id.greed21));    	
+    	this.feild_place_1.add(GamePost.PLACE_NEAR,		(ImageView)findViewById(R.id.greed21));    	
     }
     
     
@@ -80,7 +86,7 @@ public class MainActivity extends Activity implements OnClickListener, OnDrawGam
         VolleyHelper.init(this);
         
         resGame = (TextView)findViewById(R.id.resGame);        
-        resGame.setText("Счет 0:0");
+        resGame.setText("РЎС‡РµС‚ 0:0");
         
         butStart = (Button)findViewById(R.id.butStart); 
         butStart.setOnClickListener(this);
@@ -90,18 +96,15 @@ public class MainActivity extends Activity implements OnClickListener, OnDrawGam
         
         edNumPause = (EditText)findViewById(R.id.edNumPause);
         
-        new Timer();
-        
         SetFeildPlace();                                     
-    }     
-
+    }   
     
     /**
-     * Единичный шаг игры
+     * Р•РґРёРЅРёС‡РЅС‹Р№ С€Р°Рі РёРіСЂС‹
      */
-    private void StartOneStep(){
-    	butStart.setClickable(false);
-    	butStartFull.setClickable(false);
+    private void StartOneStep(){  	
+    	this.isOneStep = true;
+    	onStartGame();
     	
     	GamePost gPost = new GamePost(this);
     	gPost.SetDrawGamePost(this);
@@ -109,14 +112,15 @@ public class MainActivity extends Activity implements OnClickListener, OnDrawGam
     }
     
     /**
-     * Начала полной игры
+     * РќР°С‡Р°Р»Рѕ РїРѕР»РЅРѕР№ РёРіСЂС‹
      */
     private void clickButStartFull()
     {   
-    	long pause = 1;
-    	
+    	long pause = 1;    	
+    	this.isOneStep = false;
     	resGame0 = 0;
     	resGame1 = 0;
+    	resGame.setText("РЎС‡РµС‚ 0:0");
     	
     	CharSequence value = edNumPause.getText();
     	if(!TextUtils.isEmpty(value)){    		
@@ -127,10 +131,11 @@ public class MainActivity extends Activity implements OnClickListener, OnDrawGam
     	GamePost gPost = new GamePost(this);	
 		gPost.SetDrawGamePost(this);
 		
-		TaskStartGame pt = new TaskStartGame();		
-		pt.setPause(pause);
-		pt.SetMaxGoal(MAX_SCORE);
-		pt.execute(gPost); 		
+		TaskStartGame RunTask = new TaskStartGame();		
+		RunTask.setPause(pause);			// Р Р°Р·РјРµСЂ РїР°СѓР·С‹
+		RunTask.SetMaxGoal(MAX_SCORE);	// Р”Рѕ РіРѕР»Р°
+		RunTask.setOnStartFinish(this);	// РЎРѕР±СЏС‚РёСЏ РЅР°С‡Р°Р» Рё РѕРєРѕРЅС‡Р°РЅРёСЏ РёРіСЂС‹
+		RunTask.execute(gPost); 		
     	
     }
     
@@ -155,29 +160,27 @@ public class MainActivity extends Activity implements OnClickListener, OnDrawGam
     	
 		ArrayList<ImageView> feild_place = null;
     	
-    	// --- Выесняем игровые области 
+    	// --- Р’С‹РµСЃРЅСЏРµРј РёРіСЂРѕРІС‹Рµ РѕР±Р»Р°СЃС‚Рё 
 
-    	if(direction == 0){
-    		feild_place = this.feild_place_0;
-    		
-    		if(Result == GamePost.RESULT_GOAL){
-    			this.resGame0++;
-    		}   
-    	}
-    	else 
-    	if(direction == 1){
+		switch (direction) {
+		case 0:
+			feild_place = this.feild_place_0;			
+			if(Result == GamePost.RESULT_GOAL) this.resGame0++;	
+			break;
+		case 1:
     		feild_place = this.feild_place_1;
-    		if(Result == GamePost.RESULT_GOAL){
-    			this.resGame1++;    	
-    		}
-    	}
+    		if(Result == GamePost.RESULT_GOAL) this.resGame1++;    	
+       		break;
+    	default:
+    		new Exception("unknown direction");		
+		}		
     		   	
-    	curField = feild_place.get(Place); 
+    	curField = feild_place.get(Place); // РўРµРєСѓС‰РµРµ РїРѕР»Рµ 
     	bacBitmap = ((BitmapDrawable)curField.getDrawable()).getBitmap();
 			
         int	iImgResult = R.drawable.ball;
     	
-        // --- Берем нужную иконку под результат удара
+        // --- Р‘РµСЂРµРј РЅСѓР¶РЅСѓСЋ РёРєРѕРЅРєСѓ РїРѕРґ СЂРµР·СѓР»СЊС‚Р°С‚ СѓРґР°СЂР°
     	switch (Result) {
 			case GamePost.RESULT_OUT:
 				iImgResult = R.drawable.is_out;
@@ -192,11 +195,29 @@ public class MainActivity extends Activity implements OnClickListener, OnDrawGam
     	curField.setImageResource(iImgResult);
     	
     	if(Result == GamePost.RESULT_GOAL){
-    		String str = "Счет " + String.valueOf(resGame0) + ":" + String.valueOf(resGame1);
+    		String str = "РЎС‡РµС‚ " + String.valueOf(resGame0) + ":" + String.valueOf(resGame1);
     		resGame.setText(str);
     	}	
     	
+    	
+    	if(this.isOneStep){
+    		this.onFinishGame();
+    	}
+	}
+	
+	
+
+
+	@Override
+	public void onStartGame() {		
+    	butStart.setClickable(false);
+    	butStartFull.setClickable(false);		
+	}
+
+
+	@Override
+	public void onFinishGame() {
     	butStart.setClickable(true);
-    	butStartFull.setClickable(true);    	
+    	butStartFull.setClickable(true);			
 	}
 }

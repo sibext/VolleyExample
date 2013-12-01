@@ -1,4 +1,4 @@
-package com.sibext.volleyexample;
+п»їpackage com.sibext.volleyexample;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,22 +27,19 @@ public class GamePost {
     private OnGoalGamePost iGoalGamePost = null;
     
 	private Context curContext;
-	private int direction = 1;
-	    
-    /** До скальки идет игра */
-    static final int MAX_SCORE = 10; 
+	private int direction = 1;	    
     
-    /** Положения */
+    /** РџРѕР»РѕР¶РµРЅРёСЏ */
     static final int PLACE_OUT		= 0;
-    static final int PLACE_LEFT	= 1;
+    static final int PLACE_LEFT		= 1;
     static final int PLACE_CENTER	= 2;
     static final int PLACE_RIGHT	= 3;
-    static final int PLACE_NEAR	= 4;
+    static final int PLACE_NEAR		= 4;
     
-    /** Результат удара */
-    static final int RESULT_CAUGHT = 0;
+    /** Р РµР·СѓР»СЊС‚Р°С‚ СѓРґР°СЂР° */
+    static final int RESULT_CAUGHT	= 0;
     static final int RESULT_GOAL	= 1;
-    static final int RESULT_OUT	= 2;
+    static final int RESULT_OUT		= 2;
         
     public void SetDrawGamePost(OnDrawGamePost l){
     	this.iDrawGamePost = l;
@@ -58,11 +55,11 @@ public class GamePost {
     }
     
     /**
-     * Разбор положени
+     * Р Р°Р·Р±РѕСЂ РїРѕР»РѕР¶РµРЅРё
      * @param strPlace
      * @return
      */
-    private int GetIntPlace(String strPlace)
+    private int getIntPlace(String strPlace)
     {
     	int result = 0;
     	
@@ -85,11 +82,11 @@ public class GamePost {
     }
     
     /**
-     * Разбор результата удара
+     * Р Р°Р·Р±РѕСЂ СЂРµР·СѓР»СЊС‚Р°С‚Р° СѓРґР°СЂР°
      * @param strResult
      * @return
      */
-    private int GetIntResult(String strResult)
+    private int getIntResult(String strResult)
     {
     	int result = 0;
     	
@@ -134,20 +131,20 @@ public class GamePost {
     }
     
     /**
-     * Оповестить о результатте
+     * РћРїРѕРІРµСЃС‚РёС‚СЊ Рѕ СЂРµР·СѓР»СЊС‚Р°С‚Рµ
      * @param place
      * @param result
      * @param direction
      */
     private void NotifyResult(String place, String result, int direction){
-    	int iPlace = GetIntPlace(place);    
-    	int iResult = GetIntResult(result);
+    	int iPlace = getIntPlace(place);    
+    	int iResult = getIntResult(result);
 
     	if(iResult == RESULT_OUT)
     		iPlace = PLACE_OUT;  
     	
     	
-    	if(iGoalGamePost != null || iResult == RESULT_GOAL){
+    	if(iGoalGamePost != null && iResult == RESULT_GOAL){
     		iGoalGamePost.onGoalGame(direction);
     	}
     	

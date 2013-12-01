@@ -1,17 +1,31 @@
-package com.sibext.volleyexample;
+Ôªøpackage com.sibext.volleyexample;
 
+import com.sibext.volleyexample.GamePost.OnDrawGamePost;
 import com.sibext.volleyexample.GamePost.OnGoalGamePost;
 
 import android.os.AsyncTask;
 import android.os.SystemClock;
 
 public class TaskStartGame extends AsyncTask<GamePost, Void, GamePost> implements OnGoalGamePost {
-	/** œ‡ÛÁ‡ ÏÂÊ‰Û Û‰‡‡ÏË */
+    public interface OnStartFinish {    
+        void onStartGame();    
+        void onFinishGame();
+    }
+    
+    private OnStartFinish iStartFinish = null;
+    
+    
+	/** –ü–∞—É–∑–∞ –º–µ–∂–¥—É —É–¥–∞—Ä–∞–º–∏ */
 	private long pause = 0;	
 	private Integer max_goal;
 	
 	private Integer res0 = 0;
 	private Integer res1 = 0;
+	
+	public void setOnStartFinish(OnStartFinish l)
+	{
+		this.iStartFinish = l;
+	}
 	
 	public void setPause(long valuePause){
 		this.pause = valuePause;
@@ -28,6 +42,9 @@ public class TaskStartGame extends AsyncTask<GamePost, Void, GamePost> implement
 	
 	@Override
 	protected GamePost doInBackground(GamePost... params) {
+		if(this.iStartFinish != null)
+			this.iStartFinish.onStartGame();
+		
 		GamePost gPost = params[0];
 		gPost.SetGoalGamePost(this);
 		
@@ -36,6 +53,8 @@ public class TaskStartGame extends AsyncTask<GamePost, Void, GamePost> implement
 			SystemClock.sleep(this.pause);
 		}
 	
+		if(this.iStartFinish != null)
+			this.iStartFinish.onFinishGame();
 		
 		return gPost;
 	}
