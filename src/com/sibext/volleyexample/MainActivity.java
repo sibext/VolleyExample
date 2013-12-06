@@ -4,15 +4,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.Button;
-import android.widget.RadioButton;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,12 +24,32 @@ public class MainActivity extends Activity {
     private int direction = 1;
     private ViewGroup resultView;
     private Button button;
+    private Button stop;
     private ViewGroup ball;
     private ViewGroup feild;
+    private TextView scoresView;
+    private RequestQueue queue;
 
+    private Boolean isStopped = false;
+    
     int CenterFeildX = 0;
     int CenterFeildY = 0;
     
+    int team_score0 = 0;
+    int team_score1 = 0;
+   
+	Object synchObject = new Object();
+	
+	@Override
+	protected void onDestroy() {
+		if (queue != null)
+		{
+			queue.stop();
+			queue.cancelAll(new String("tag"));
+		}
+		super.onDestroy();
+	}
+	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,25 +57,41 @@ public class MainActivity extends Activity {
         resultView = (ViewGroup)findViewById(R.id.result);
         ball = (ViewGroup)findViewById(R.id.ball);
         feild = (ViewGroup)findViewById(R.id.feild);
-        
+        scoresView = (TextView)findViewById(R.id.score);
+        stop = (Button)findViewById(R.id.button_stop);
+        button = (Button)findViewById(R.id.button);
     	CenterFeildX = feild.getLayoutParams().width / 2;
     	CenterFeildY = feild.getLayoutParams().height / 2;
-    	
-        VolleyHelper.init(this);
+		scoresView.setText(R.string.score1);
+		team_score0 = team_score1 = 0;
+		
+		VolleyHelper.init(this);
+        queue = VolleyHelper.getRequestQueue();
         
-        button = (Button)findViewById(R.id.button); 
+        stop.setEnabled(false);
+        button.setEnabled(true);
         button.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				button.setClickable(false);
+				resultView.removeAllViews();
 				button.setEnabled(false);
+				stop.setEnabled(true);
+				isStopped = false;
+				scoresView.setText(R.string.score1);
+				team_score0 = team_score1 = 0;
+				TextView textView1 = new TextView(MainActivity.this);
+				textView1.setText("-> " + direction + "");
+				resultView.addView(textView1);
 				ValleyRequest req = new ValleyRequest();
-				RequestQueue queue = VolleyHelper.getRequestQueue();
+				
 				try
 				{
+					queue.start();
 					GsonRequest<ValleyResponse> responce = new GsonRequest<ValleyResponse>(Method.POST,
 							"http://volley.sibext.com/", req, createMyReqErrorListener(), GsonReqSuccessListner(), ValleyResponse.class);
+					responce.setTag(new String("tag"));
 					queue.add(responce);
+					
 				}
 				catch(Exception e)
 				{
@@ -65,9 +99,8 @@ public class MainActivity extends Activity {
 					button.setClickable(true);
 					button.setEnabled(true);
 				}
-				TextView textView = new TextView(MainActivity.this);
-				textView.setText("-> " + direction + "");
-				resultView.addView(textView);
+				//game = new VolleyGame();
+				//game.execute(synchObject);
 				/*JSONObject object = new JSONObject();
 				try {
 					object.put("direction", direction);
@@ -87,6 +120,32 @@ public class MainActivity extends Activity {
 				
 			}
 		});
+        
+        stop.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				synchronized (isStopped){
+					
+				isStopped = true;
+				queue.stop();
+				queue.cancelAll(new String("tag"));
+				button.setEnabled(true);
+				stop.setEnabled(false);
+				
+				Toast t;
+				
+				if (team_score0 > team_score1)
+					t = Toast.makeText(MainActivity.this, "Победила команда 0", Toast.LENGTH_LONG);
+				else if (team_score0 < team_score1)
+					t = Toast.makeText(MainActivity.this, "Победила команда 1", Toast.LENGTH_LONG);
+				else
+					t = Toast.makeText(MainActivity.this, "Ничья", Toast.LENGTH_LONG);
+				team_score0 = team_score1 = 0;
+				t.show();
+				}
+			}
+		});
 
     }
     private void ResponseAnalyze(String result, String place)
@@ -99,7 +158,7 @@ public class MainActivity extends Activity {
     	int ballWidth = ball.getLayoutParams().width;
     	
     	if (direction == 1)
-    	{
+    	{            	
     		paddingLeft += CenterFeildX;
     	}
     	
@@ -150,23 +209,73 @@ public class MainActivity extends Activity {
 
 			@Override
 			public void onResponse(ValleyResponse response) {
-				// TODO Auto-generated method stub
               	String result = response.result;
             	String place = response.place;
-            	ResponseAnalyze(result, place);
+            	synchronized(isStopped){
+            		
+            		if (isStopped)
+            			return;
+            		ResponseAnalyze(result, place);
             	
-                if (!result.equals("goal")) {
-                    if (direction == 1) {
-                    	direction = 0;
-                    } else {
-                    	direction = 1;
-                    }
-                }
+                	if (!result.equals("goal")) {
+                    	if (direction == 1) {
+                    		direction = 0;
+                    	} else {
+                    		direction = 1;
+                    	}
+                	} else {
+                    	if (direction == 1) {
+                    		team_score1++;
+                    	} else {
+                    		team_score0++;
+                    	}
+                		scoresView.setText("счет " + Integer.valueOf(team_score0).toString() + " : " + Integer.valueOf(team_score1).toString());
+                	}
+                	
                 TextView textView = ((TextView)resultView.getChildAt(resultView.getChildCount() - 1));
                 textView.setText(textView.getText() + " (" + result + ")" + "(" + place + ")");
-                button.setClickable(true);
-                button.setEnabled(true);
-			}
+                	
+    				if (team_score0 == 20 || team_score1 == 20 )
+    				{
+    					Toast t;
+    					if (team_score0 == 20)
+    						t = Toast.makeText(MainActivity.this, "Победила команда 0", Toast.LENGTH_LONG);
+    					else
+    						t = Toast.makeText(MainActivity.this, "Победила команда 1", Toast.LENGTH_LONG);
+    					button.setEnabled(true);
+    					button.setClickable(true);
+    				
+    					stop.setClickable(false);
+    					stop.setEnabled(false);
+    					t.show();
+    					team_score0 = team_score1 = 0;       				//endGame = true;
+    				}
+    				else
+    				{
+    					TextView textView1 = new TextView(MainActivity.this);
+    					textView1.setText("-> " + direction + "");
+    					
+    					resultView.addView(textView1);
+    					ValleyRequest req = new ValleyRequest();
+    				
+    					try
+    					{
+    						GsonRequest<ValleyResponse> responce = new GsonRequest<ValleyResponse>(Method.POST,
+    								"http://volley.sibext.com/", req, createMyReqErrorListener(), GsonReqSuccessListner(), ValleyResponse.class);
+    						responce.setTag(new String("tag"));
+    						queue.add(responce);
+    					
+    					}
+    					catch(Exception e)
+    					{
+    						e.printStackTrace();
+    					//button.setClickable(true);
+    					button.setEnabled(true);
+    					}
+    				}
+
+            	}
+        	}
     		
     	};
     }
@@ -185,11 +294,53 @@ public class MainActivity extends Activity {
 	                    } else {
 	                    	direction = 1;
 	                    }
+                    } else {
+	                    if (direction == 1) {
+	                    	team_score1++;
+	                    } else {
+	                    	team_score0++;
+	                    }
+	                    
+                    	scoresView.setText("счет " + Integer.valueOf(team_score0).toString() + " : " + Integer.valueOf(team_score1).toString());
                     }
+                    
                     TextView textView = ((TextView)resultView.getChildAt(resultView.getChildCount() - 1));
                     textView.setText(textView.getText() + " (" + result + ")" + "(" + place + ")");
-                    button.setClickable(true);
-                    button.setEnabled(true);
+        			if (team_score0 == 20 || team_score1 == 20 )
+        			{
+        				Toast t;
+        				if (team_score0 == 20)
+        					t = Toast.makeText(MainActivity.this, "Победила команда 0", Toast.LENGTH_LONG);
+        				else
+        					t = Toast.makeText(MainActivity.this, "Победила команда 1", Toast.LENGTH_LONG);
+        				button.setEnabled(true);
+        				button.setClickable(true);
+        				
+        				stop.setClickable(false);
+        				stop.setEnabled(false);
+        				t.show();
+        				team_score0 = team_score1 = 0;
+        			}
+        			else
+        			{
+        				TextView textView1 = new TextView(MainActivity.this);
+        				textView1.setText("-> " + direction + "");
+        				resultView.addView(textView1);
+        				ValleyRequest req = new ValleyRequest();
+        				
+        				try
+        				{
+        					GsonRequest<ValleyResponse> responce = new GsonRequest<ValleyResponse>(Method.POST,
+        							"http://volley.sibext.com/", req, createMyReqErrorListener(), GsonReqSuccessListner(), ValleyResponse.class);
+        					queue.add(responce);
+        					
+        				}
+        				catch(Exception e)
+        				{
+        					e.printStackTrace();
+        					button.setEnabled(true);
+        				}
+        			}
 
                 } catch (JSONException e) {
                 	Toast.makeText(MainActivity.this, "Parse error", Toast.LENGTH_LONG).show();
@@ -207,5 +358,4 @@ public class MainActivity extends Activity {
             }
         };
     }
-
 }

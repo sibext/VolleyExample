@@ -8,11 +8,28 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:orientation="vertical" >
 
+    <LinearLayout
+    	android:layout_width="match_parent"
+    	android:layout_height="wrap_content"
+    	android:orientation="horizontal"
+         >
     <Button
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/start1" />
+    <Button
+        android:id="@+id/button_stop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/stop1" />
+        <TextView
+        android:id="@+id/score"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/score1"
+          />
+    </LinearLayout>
 
     <RelativeLayout
             android:id="@+id/feild"

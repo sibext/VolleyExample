@@ -2,6 +2,7 @@
 <resources>
 
     <string name="app_name">Volley Example</string>
-    <string name="start1">Send request</string>
-
+    <string name="start1">Start</string>
+	<string name="stop1">Stop</string>
+	<string name="score1">счет 0 : 0</string>
 </resources>
