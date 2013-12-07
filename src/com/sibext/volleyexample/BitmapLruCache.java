@@ -2,7 +2,8 @@ package com.sibext.volleyexample;
 
 import android.annotation.TargetApi;
 import android.graphics.Bitmap;
-import android.util.LruCache;
+//import android.util.LruCache;
+import android.support.v4.util.LruCache;
 
 import com.android.volley.toolbox.ImageLoader.ImageCache;
 
