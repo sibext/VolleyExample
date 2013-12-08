@@ -2,6 +2,10 @@
 <resources>
 
     <string name="app_name">Volley Example</string>
-    <string name="start1">Send request</string>
-
+    <string name="start1">Один ход</string>
+    <string name="title_activity_game">GameActivity</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="hint_pause">Пауза между ударами</string>
+    <string name="StartFullGame">Начать игру</string>
 </resources>
